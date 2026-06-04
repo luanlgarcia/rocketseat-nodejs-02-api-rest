@@ -47,6 +47,8 @@ export async function mealsRoutes (app: FastifyInstance) {
   app.get('/:id', {
     preHandler: [checkSessionIdExists]
   }, async (request, reply) => {
+    const { sessionId } = request.cookies
+
     const getmealsParamsSchema = z.object({
       id: z.uuid()
     })
@@ -55,6 +57,7 @@ export async function mealsRoutes (app: FastifyInstance) {
 
     const meal = await knex('meals').where({
       id,
+      user_id: sessionId
     }).first()
 
     return { meal }
@@ -63,6 +66,8 @@ export async function mealsRoutes (app: FastifyInstance) {
   app.put('/:id', {
     preHandler: [checkSessionIdExists]
   }, async (request, reply) => {
+    const { sessionId } = request.cookies
+
     const getmealsParamsSchema = z.object({
       id: z.uuid()
     })
@@ -78,8 +83,9 @@ export async function mealsRoutes (app: FastifyInstance) {
 
     const { name, description, eatenIn, isDiet } = updateMealBodySchema.parse(request.body)
 
-    await knex('meals').where({
+    const meal = await knex('meals').where({
       id,
+      user_id: sessionId
     }).update({
       name,
       description,
@@ -87,21 +93,32 @@ export async function mealsRoutes (app: FastifyInstance) {
       is_diet: isDiet
     })
 
+    if (!meal) {
+      return reply.status(404).send()
+    }
+
     return reply.status(204).send()
   })
 
   app.delete('/:id', {
     preHandler: [checkSessionIdExists]
   }, async (request, reply) => {
+    const { sessionId } = request.cookies
+
     const getmealsParamsSchema = z.object({
       id: z.uuid()
     })
 
     const { id } = getmealsParamsSchema.parse(request.params)
 
-    await knex('meals').where({
+    const mealDelete = await knex('meals').where({
       id,
+      user_id: sessionId
     }).del()
+
+    if (!mealDelete) {
+      return reply.status(404).send()
+    }
 
     return reply.status(204).send()
   })
@@ -110,8 +127,6 @@ export async function mealsRoutes (app: FastifyInstance) {
     preHandler: [checkSessionIdExists]
   }, async (request, reply) => {
     const { sessionId } = request.cookies
-
-    // const meals = await knex('meals').where('user_id', sessionId).select()
 
     const meals = await knex('meals').where('user_id', sessionId).orderBy('eaten_in', 'asc')
 
