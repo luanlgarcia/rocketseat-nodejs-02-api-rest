@@ -9,9 +9,7 @@ export async function mealsRoutes (app: FastifyInstance) {
   app.get('/', {
     preHandler: [checkSessionIdExists]
   }, async (request, reply) => {
-    const { sessionId } = request.cookies
-
-    const meals = await knex('meals').where('user_id', sessionId).select()
+    const meals = await knex('meals').where('user_id', request.user?.id).select()
 
     return { meals }
   })
@@ -19,8 +17,6 @@ export async function mealsRoutes (app: FastifyInstance) {
   app.post('/', {
     preHandler: [checkSessionIdExists]
   }, async (request, reply) => {
-    const { sessionId } = request.cookies
-
     const createMealBodySchema = z.object({
       name: z.string(),
       description: z.string(),
@@ -37,7 +33,7 @@ export async function mealsRoutes (app: FastifyInstance) {
       name,
       description,
       eaten_in: eatenIn ?? new Date(),
-      user_id: sessionId,
+      user_id: request.user?.id,
       is_diet: isDiet
     })
 
@@ -47,8 +43,6 @@ export async function mealsRoutes (app: FastifyInstance) {
   app.get('/:id', {
     preHandler: [checkSessionIdExists]
   }, async (request, reply) => {
-    const { sessionId } = request.cookies
-
     const getmealsParamsSchema = z.object({
       id: z.uuid()
     })
@@ -57,7 +51,7 @@ export async function mealsRoutes (app: FastifyInstance) {
 
     const meal = await knex('meals').where({
       id,
-      user_id: sessionId
+      user_id: request.user?.id
     }).first()
 
     return { meal }
@@ -66,8 +60,6 @@ export async function mealsRoutes (app: FastifyInstance) {
   app.put('/:id', {
     preHandler: [checkSessionIdExists]
   }, async (request, reply) => {
-    const { sessionId } = request.cookies
-
     const getmealsParamsSchema = z.object({
       id: z.uuid()
     })
@@ -85,7 +77,7 @@ export async function mealsRoutes (app: FastifyInstance) {
 
     const meal = await knex('meals').where({
       id,
-      user_id: sessionId
+      user_id: request.user?.id
     }).update({
       name,
       description,
@@ -103,8 +95,6 @@ export async function mealsRoutes (app: FastifyInstance) {
   app.delete('/:id', {
     preHandler: [checkSessionIdExists]
   }, async (request, reply) => {
-    const { sessionId } = request.cookies
-
     const getmealsParamsSchema = z.object({
       id: z.uuid()
     })
@@ -113,7 +103,7 @@ export async function mealsRoutes (app: FastifyInstance) {
 
     const mealDelete = await knex('meals').where({
       id,
-      user_id: sessionId
+      user_id: request.user?.id
     }).del()
 
     if (!mealDelete) {
@@ -126,9 +116,7 @@ export async function mealsRoutes (app: FastifyInstance) {
   app.get('/metrics', {
     preHandler: [checkSessionIdExists]
   }, async (request, reply) => {
-    const { sessionId } = request.cookies
-
-    const meals = await knex('meals').where('user_id', sessionId).orderBy('eaten_in', 'asc')
+    const meals = await knex('meals').where('user_id', request.user?.id).orderBy('eaten_in', 'asc')
 
     const totalMeals = meals.length
     const mealsWithinDiet = meals.filter((meal) => meal.is_diet).length
