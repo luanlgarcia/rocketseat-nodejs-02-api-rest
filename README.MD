@@ -13,7 +13,7 @@ Um ponto importante do desafio: a partir dele a Rocketseat **não entrega mais a
 - **Node.js** + **TypeScript**
 - **Fastify** — servidor HTTP e roteamento
 - **Knex** — query builder e migrations
-- **SQLite** (desenvolvimento) / **PostgreSQL** (configurável via variável de ambiente)
+- **SQLite** 
 - **Zod** — validação de dados de entrada e das variáveis de ambiente
 - **@fastify/cookie** — identificação de sessão
 - **Vitest** + **Supertest** — testes de integração
